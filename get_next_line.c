@@ -6,7 +6,7 @@
 /*   By: ftapponn <ftapponn@student.42heilbronn.de  +#+  +:+       +#+        */
 /*                                                +#+#+#+#+#+   +#+           */
 /*   Created: 2024/11/03 18:37:37 by ftapponn          #+#    #+#             */
-/*   Updated: 2024/11/04 12:22:55 by ftapponn         ###   ########.fr       */
+/*   Updated: 2024/11/22 17:42:53 by ftapponn         ###   ########.fr       */
 /*                                                                            */
 /* ************************************************************************** */
 
@@ -99,6 +99,7 @@ char	*get_next_line(int fd)
 	return (line);
 }
 
+/*
 int	main(void)
 {
 	int		fd;
@@ -118,3 +119,4 @@ int	main(void)
 	close(fd);
 	return (0);
 }
+*/
