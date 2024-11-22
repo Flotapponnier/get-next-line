@@ -1,126 +1,120 @@
+/* ************************************************************************** */
+/*                                                                            */
+/*                                                        :::      ::::::::   */
+/*   get_next_line.c                                    :+:      :+:    :+:   */
+/*                                                    +:+ +:+         +:+     */
+/*   By: ftapponn <ftapponn@student.42heilbronn.de  +#+  +:+       +#+        */
+/*                                                +#+#+#+#+#+   +#+           */
+/*   Created: 2024/11/03 18:37:37 by ftapponn          #+#    #+#             */
+/*   Updated: 2024/11/04 12:22:55 by ftapponn         ###   ########.fr       */
+/*                                                                            */
+/* ************************************************************************** */
+
 #include "get_next_line.h"
+#include <stdio.h>
 
-char	*clean_line_after(char *str)
+char	*ft_free(char **str)
 {
-	char	*result_clean_line;
-	size_t	i;
-
-	if (!str || *str == '\0')
-		return (NULL);
-
-	i = 0;
-	while (str[i] && str[i] != '\n')
-	{
-		i++;
-	}
-	if (str[i] == '\n')
-		i++;
-	result_clean_line = ft_substr(str, 0, i);
-	if (!result_clean_line)
-		return (NULL);
-
-	return (result_clean_line);
+	free(*str);
+	*str = NULL;
+	return (NULL);
 }
 
-char	*clean_line_before(char *str)
+char	*clean_overflow_line(char *overflow_line)
 {
-	char	*result_clean_line;
-	size_t	i;
+	char	*new_overflow_line;
+	char	*position;
+	int		len;
 
-	if (!str || *str == '\0')
+	position = ft_strchr(overflow_line, '\n');
+	if (!position)
+		return (ft_free(&overflow_line));
+	else
+		len = (position - overflow_line) + 1;
+	if (!overflow_line[len])
+		return (ft_free(&overflow_line));
+	new_overflow_line = ft_substr(overflow_line, len, ft_strlen(overflow_line)
+			- len);
+	ft_free(&overflow_line);
+	if (!new_overflow_line)
 		return (NULL);
-	i = 0;
-	while (str[i] && str[i] != '\n')
-		i++;
-	if (!str[i])
-	{
-		free(str);
-		return (NULL);
-	}
-	i++;
-	result_clean_line = ft_substr(str, i, ft_strlen(str) - i);
-	if (!result_clean_line)
-	{
-		free(str);
-		return (NULL);
-	}
-	free(str);
-	return (result_clean_line);
+	return (new_overflow_line);
 }
 
-void	init_buffer_and_str(char **buffer, char **str)
+char	*clean_line(char *overflow_line)
 {
-	*buffer = (char *)malloc((BUFFER_SIZE + 1) * sizeof(char));
-	if (*str == NULL)
-		*str = ft_strdup("");
-	if (*buffer == NULL)
-		return ;
+	char	*line;
+	char	*position;
+	int		len;
+
+	position = ft_strchr(overflow_line, '\n');
+	len = (position - overflow_line) + 1;
+	line = ft_substr(overflow_line, 0, len);
+	if (!line)
+		return (NULL);
+	return (line);
 }
 
-char	*read_line(int fd, char *str)
+char	*read_line(int fd, char *overflow_line)
 {
+	int		readed;
 	char	*buffer;
-	ssize_t	readed;
-	char	*tmp;
 
 	readed = 1;
-	init_buffer_and_str(&buffer, &str);
+	buffer = malloc(sizeof(char) * (BUFFER_SIZE + 1));
 	if (!buffer)
-		return (NULL);
-	while (readed > 0)
+		return (ft_free(&overflow_line));
+	buffer[0] = '\0';
+	while (readed > 0 && ft_strchr(buffer, '\n') == 0)
 	{
 		readed = read(fd, buffer, BUFFER_SIZE);
-		if (readed == -1)
-			return (NULL);
-		if (readed == 0)
-			break ;
-		buffer[readed] = '\0';
-		tmp = ft_strjoin(str, buffer);
-		free(str);
-		str = tmp;
-		if (ft_strchr(str, '\n'))
-			break ;
+		if (readed > 0)
+		{
+			buffer[readed] = '\0';
+			overflow_line = ft_strjoin(overflow_line, buffer);
+		}
 	}
 	free(buffer);
-	return (str);
+	if (readed == -1)
+		return (ft_free(&overflow_line));
+	return (overflow_line);
 }
 
 char	*get_next_line(int fd)
 {
 	static char	*overflow_line = NULL;
-	char		*result_line;
-	char		*result;
+	char		*line;
 
-	if (fd < 0 || BUFFER_SIZE <= 0 || read(fd, 0, 0) < 0)
+	if (fd < 0)
 		return (NULL);
-	result_line = read_line(fd, overflow_line);
-	if (!result_line)
+	if ((overflow_line != 0 && !ft_strchr(overflow_line, '\n'))
+		|| !overflow_line)
+		overflow_line = read_line(fd, overflow_line);
+	if (!overflow_line)
 		return (NULL);
-	result = clean_line_after(result_line);
-	if (!result)
-	{
-		free(result_line);
-		return (NULL);
-	}
-	overflow_line = clean_line_before(result_line);
-	return (result);
+	line = clean_line(overflow_line);
+	if (!line)
+		return (ft_free(&overflow_line));
+	overflow_line = clean_overflow_line(overflow_line);
+	return (line);
 }
 
-/*
-int main(void)
+int	main(void)
 {
-	int fd;
-	char *result;
+	int		fd;
+	char	*line;
 
 	fd = open("test.txt", O_RDONLY);
 	if (fd < 0)
-		return (1);
-	while ((result = get_next_line(fd)) != NULL)
 	{
-		printf("%s", result);
-		free(result);
+		printf("Error opening file");
+		return (1);
+	}
+	while ((line = get_next_line(fd)) != NULL)
+	{
+		printf("%s", line);
+		free(line);
 	}
 	close(fd);
 	return (0);
 }
-*/
