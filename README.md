@@ -47,6 +47,7 @@ buffer is a static variable that holds the data read from the file descriptor.
 The static variable ensures that when get_next_line() is called multiple times, it retains the data between calls, allowing the function to read the next part of the file correctly.
 __Static Variable__: The count variable is declared as static. This means it is initialized only once and retains its value between function calls.
 Behavior: Every time count_calls() is called, the count variable is incremented, and the updated value is returned. The value of count persists between calls to the function, even though the function itself is called multiple times.
+
 __Why is this useful in your project?__
 In your get_next_line project, a similar principle applies. The overflow_line static variable helps retain the state (e.g., the remaining data to process) between calls to get_next_line(). Without a static variable, the function would lose track of where it left off between multiple calls.
 
