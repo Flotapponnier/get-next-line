@@ -23,32 +23,21 @@ A static variable is used in this project to maintain the state between calls to
 
 Example of Static Variable Usage:
 ```c
-char *get_next_line(int fd) {
-    static char *buffer = NULL;
-    char *line;
-    char *temp;
-    int bytes_read;
+#include <stdio.h>
 
-    // Allocate memory for line buffer if not already done
-    line = malloc(BUFFER_SIZE + 1);
-    if (!line)
-        return NULL;
+int count_calls(void) 
+{
+    static int count = 0;  // Static variable to retain its value between function calls
+    count++;                // Increment the counter
+    return count;           // Return the current count
+}
 
-    // Read the next part of the file into buffer
-    bytes_read = read(fd, buffer, BUFFER_SIZE);
-    if (bytes_read <= 0)
-        return NULL; // Handle end of file or error
-
-    // Process buffer into the line
-    while (bytes_read > 0 && !newline_found(buffer)) {
-        temp = append_to_line(line, buffer);
-        if (!temp)
-            return NULL;
-        line = temp;
-        bytes_read = read(fd, buffer, BUFFER_SIZE);
-    }
-
-    return line;
+int main(void) 
+{
+    printf("Call count: %d\n", count_calls());  // Output: 1
+    printf("Call count: %d\n", count_calls());  // Output: 2
+    printf("Call count: %d\n", count_calls());  // Output: 3
+    return 0;
 }
 ```
 __In this example:__
@@ -56,6 +45,17 @@ __In this example:__
 buffer is a static variable that holds the data read from the file descriptor.
 
 The static variable ensures that when get_next_line() is called multiple times, it retains the data between calls, allowing the function to read the next part of the file correctly.
+__Static Variable__: The count variable is declared as static. This means it is initialized only once and retains its value between function calls.
+Behavior: Every time count_calls() is called, the count variable is incremented, and the updated value is returned. The value of count persists between calls to the function, even though the function itself is called multiple times.
+__Why is this useful in your project?__
+In your get_next_line project, a similar principle applies. The overflow_line static variable helps retain the state (e.g., the remaining data to process) between calls to get_next_line(). Without a static variable, the function would lose track of where it left off between multiple calls.
+
+Does this simple example help clarify the usage of static variables?
+
+__Handling Multiple File Descriptors (Bonus)__
+One of the challenges of this project is handling multiple file descriptors. The code above can be easily extended to support multiple file descriptors by modifying the static variable. Instead of using a single static variable, we can store a separate static variable for each file descriptor.
+
+To handle this, a static array of pointers (or a more efficient data structure) is used to track the overflow_line for each file descriptor:
 
 ## Conclusion
 The use of read() and static variables is critical for solving this problem efficiently. The static variable keeps track of the data read so far, while read() ensures that the data is retrieved in chunks. The newline handling at the end of each line guarantees that each call to get_next_line() returns a full line of text.
